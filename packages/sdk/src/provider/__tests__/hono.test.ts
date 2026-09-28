@@ -120,6 +120,19 @@ describe('routedockHono — mpp-charge flow', () => {
     const res = await app.request('/price', { method: 'GET' })
     assert.equal(res.status, 402)
   })
+
+  it('keeps mpp-charge reachable when mpp-session is also enabled', async () => {
+    const app = makeApp({
+      modes: ['mpp-charge', 'mpp-session'],
+      pricing: {
+        'mpp-charge': '0.0008',
+        'mpp-session': { rate: '0.0001', channelFactory: CHANNEL_CONTRACT },
+      },
+    })
+    const res = await app.request('/price')
+    assert.equal(res.status, 402)
+    assert.match(res.headers.get('www-authenticate') ?? '', /intent="?charge"?/)
+  })
 })
 
 describe('routedockHono — mpp-session flow', () => {
@@ -252,4 +265,3 @@ describe('routedockHono — settlement idempotency', () => {
     assert.equal(settled.length, 0)
   })
 })
-
